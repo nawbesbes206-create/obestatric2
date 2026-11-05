@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منصة Nursing Core - د. منار محمد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --beige: #FDF5E6; --beige-dark: #F5E6D3; --gold: #D4AF37; --gold-light: #E6C27A;
+            --burgundy: #722F37; --burgundy-dark: #5A1A22; --text-dark: #3E2723;
+            --white: #FFFFFF; --success: #2E7D32; --error: #C62828;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--beige); color: var(--text-dark); overflow: hidden; height: 100vh; }
+
+        .fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark)); color: var(--gold); text-align: center; padding: 12px; font-size: 14px; font-weight: 700; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); letter-spacing: 1px; }
+
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; background-color: var(--beige); opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0.5s ease; z-index: 10; padding-bottom: 60px; }
+        .screen.active { opacity: 1; visibility: visible; z-index: 20; }
+
+        #welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: radial-gradient(circle at center, var(--beige) 0%, var(--beige-dark) 100%); }
+        .lighthouse-container { position: relative; width: 100px; height: 180px; margin-bottom: 40px; }
+        .lighthouse-base { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 50px; height: 100px; background: linear-gradient(to right, var(--burgundy), var(--burgundy-dark)); clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%); }
+        .lighthouse-top { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 35px; height: 40px; background: var(--gold); border-radius: 5px 5px 0 0; box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+        .light-beam { position: absolute; top: 15px; left: 50%; width: 250px; height: 6px; background: linear-gradient(to right, rgba(212, 175, 55, 0.9), transparent); transform-origin: left center; animation: rotateLight 5s infinite linear; box-shadow: 0 0 20px var(--gold); border-radius: 3px; }
+        .light-glow { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--white); border-radius: 50%; box-shadow: 0 0 30px var(--gold), 0 0 60px var(--gold-light); animation: pulseGlow 2s infinite alternate; }
+        @keyframes rotateLight { 0% { transform: rotate(0deg); opacity: 0.3; } 25% { opacity: 1; } 50% { transform: rotate(180deg); opacity: 0.3; } 75% { opacity: 1; } 100% { transform: rotate(360deg); opacity: 0.3; } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold-light); } 100% { box-shadow: 0 0 40px var(--gold), 0 0 80px var(--gold-light); } }
+        .welcome-title { font-size: 28px; color: var(--burgundy); margin-bottom: 10px; font-weight: 800; }
+        .welcome-subtitle { font-size: 16px; color: var(--text-dark); margin-bottom: 40px; opacity: 0.8; }
+        .btn-start { background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark)); color: var(--gold); border: 2px solid var(--gold); padding: 15px 50px; font-size: 18px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(114, 47, 55, 0.3); }
+        .btn-start:active { transform: scale(0.95); }
+
+        #main-menu { padding: 20px 15px; }
+        .menu-header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
+        .menu-header h1 { color: var(--burgundy); font-size: 24px; margin-bottom: 5px; }
+        .menu-header p { color: var(--gold); font-size: 14px; font-weight: 700; }
+        .lecture-card { background: var(--white); border: 2px solid var(--gold-light); border-radius: 15px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .lecture-card:active { transform: scale(0.98); background: var(--beige-dark); }
+        .lecture-icon { width: 50px; height: 50px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-left: 15px; color: var(--burgundy); font-weight: 800; flex-shrink: 0; }
+        .lecture-info h3 { color: var(--burgundy); font-size: 16px; margin-bottom: 5px; }
+        .lecture-info p { color: #777; font-size: 12px; }
+
+        .stats-bar { position: sticky; top: 0; background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark)); color: var(--gold); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-size: 13px; font-weight: 700; gap: 10px; }
+        .stat-item { display: flex; flex-direction: column; align-items: center; }
+        .stat-value { font-size: 18px; color: var(--white); margin-top: 2px; }
+        
+        /* New Back Button Style */
+        .btn-back-quiz { 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid var(--gold); 
+            color: var(--gold); 
+            padding: 6px 15px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+            transition: all 0.3s ease; 
+            white-space: nowrap;
+        }
+        .btn-back-quiz:active { background: var(--gold); color: var(--burgundy); }
+
+        .quiz-header { text-align: center; padding: 20px 15px 10px; }
+        .quiz-header h2 { color: var(--burgundy); font-size: 20px; }
+        .questions-container { padding: 10px 15px; }
+        .question-card { background: var(--white); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-right: 5px solid var(--gold); }
+        .question-text { font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 15px; line-height: 1.6; }
+        .options-container { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { background: var(--beige); border: 2px solid var(--beige-dark); border-radius: 10px; padding: 15px; text-align: right; font-size: 14px; font-weight: 500; color: var(--text-dark); cursor: pointer; transition: all 0.3s ease; }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct { background: #E8F5E9; border-color: var(--success); color: var(--success); }
+        .option-btn.wrong { background: #FFEBEE; border-color: var(--error); color: var(--error); }
+        .option-btn.disabled { pointer-events: none; opacity: 0.7; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        .celebration-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 20px; z-index: 2000; pointer-events: none; opacity: 0; }
+        .celebration-overlay.show { opacity: 1; }
+        .celebration-icon { font-size: 2.5rem; animation: elegantFloat 1.2s ease-out forwards; }
+        .celebration-icon:nth-child(2) { animation-delay: 0.1s; }
+        .celebration-icon:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes elegantFloat { 0% { transform: scale(0) translateY(30px); opacity: 0; } 40% { transform: scale(1.2) translateY(-10px); opacity: 1; } 100% { transform: scale(1) translateY(-40px); opacity: 0; } }
+
+        .results-container { background: var(--white); border-radius: 20px; padding: 30px 20px; margin: 20px 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid var(--gold); display: none; }
+        .results-container.show { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .results-score { font-size: 48px; font-weight: 800; color: var(--burgundy); margin-bottom: 10px; }
+        .results-message { font-size: 18px; color: var(--text-dark); margin-bottom: 25px; line-height: 1.6; }
+        .btn-restart { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--burgundy); border: none; padding: 12px 40px; font-size: 16px; font-weight: 700; border-radius: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); margin-bottom: 10px; }
+        .btn-back-menu { background: transparent; color: var(--burgundy); border: 2px solid var(--burgundy); padding: 10px 30px; font-size: 14px; font-weight: 700; border-radius: 25px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="celebration-overlay" id="celebration">
+        <div class="celebration-icon">🌸</div><div class="celebration-icon">⭐</div><div class="celebration-icon">🦋</div>
+    </div>
+
+    <div id="welcome-screen" class="screen active">
+        <div class="lighthouse-container">
+            <div class="lighthouse-base"></div><div class="lighthouse-top"><div class="light-glow"></div><div class="light-beam"></div></div>
+        </div>
+        <h1 class="welcome-title">أهلاً بك    </h1>
+        <p class="welcome-subtitle">Obstetric & Gynecological Nursing</p>
+        <button class="btn-start" onclick="showScreen('main-menu')">ابدأ الرحلة ✨</button>
+    </div>
+
+    <div id="main-menu" class="screen">
+        <div class="menu-header"><h1>المحاضرات</h1><p>اختر المحاضرة لبدء الاختبار</p></div>
+        <div id="lectures-list"></div>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="stats-bar">
+            <button class="btn-back-quiz" onclick="showScreen('main-menu')">🏠 الرجوع</button>
+            <div class="stat-item"><span>المتبقي</span><span class="stat-value" id="stat-remaining">0</span></div>
+            <div class="stat-item"><span>الصح ✅</span><span class="stat-value" id="stat-correct">0</span></div>
+            <div class="stat-item"><span>الخطأ ❌</span><span class="stat-value" id="stat-wrong">0</span></div>
+        </div>
+        <div class="quiz-header"><h2 id="quiz-title">عنوان المحاضرة</h2></div>
+        <div class="questions-container" id="questions-container"></div>
+        <div class="results-container" id="results-container">
+            <div class="results-score" id="results-score">0%</div>
+            <div class="results-message" id="results-message">رسالة النتيجة</div>
+            <button class="btn-restart" onclick="restartQuiz()">إعادة الاختبار 🔄</button><br>
+            <button class="btn-back-menu" onclick="showScreen('main-menu')">العودة للقائمة الرئيسية 🏠</button>
+        </div>
+    </div>
+
+    <div class="fixed-footer">اعداد LUMINARA 🌸   🌸</div>
+
+    <script>
+        // ==========================================
+        // DATA: ALL QUESTIONS
+        // ==========================================
+        const lec1 = [
+            {q:"According to WHO, maternal death is defined as the death of a woman while pregnant or within:",o:["24 hours of termination","42 days of termination of pregnancy","6 months of termination","1 year of termination"],c:1},
+            {q:"The Maternal Mortality Rate is calculated per:",o:["1,000 live births","10,000 live births","100,000 women in reproductive age(15-49 years)","1,000,000 population"],c:2},
+            {q:"Globally, how many women and girls die each day from pregnancy complications?",o:["1,400","14,000","500,000","3 million"],c:1},
+            {q:"What percentage of maternal deaths occur in the developing world?",o:["50%","75%","90%","99%"],c:3},
+            {q:"In Egypt, approximately how many women die each year from pregnancy complications?",o:["140","1,400","14,000","50,000"],c:1},
+            {q:"Indirect obstetric deaths are those resulting from:",o:["Obstetric complications during labor only","Previous existing disease aggravated by pregnancy(e.g., Anemia, Heart disease)","Unsafe abortion","Ruptured uterus"],c:1},
+            {q:"Which of the following is considered a DIRECT cause of maternal mortality?",o:["Malaria","Anemia","Severe bleeding(Hemorrhage)","Heart disease"],c:2},
+            {q:"According to the pie chart of maternal death causes worldwide, which is a major direct cause?",o:["Diabetes","Asthma","Obstructed labor","Kidney failure"],c:2},
+            {q:"Shortage of blood in health facilities contributed to what percentage of maternal deaths?",o:["6%","16%","19%","30%"],c:1},
+            {q:"Failure by woman or family to recognize danger signs and delay in seeking care contributed to:",o:["15% of maternal deaths","19% of maternal deaths","30% of maternal deaths","36% of maternal deaths"],c:2},
+            {q:"Lack of antenatal care contributed to what percentage of maternal deaths?",o:["15%","19%","22%","30%"],c:1},
+            {q:"What percentage of maternal deaths had unwanted pregnancies(Family Planning factor)?",o:["13%","22%","30%","36%"],c:1},
+            {q:"The leading cause of neonatal death is:",o:["Pneumonia(19%)","Birth asphyxia(21.1%)","Neonatal Tetanus(14.1%)","Congenital anomalies(11.1%)"],c:1},
+            {q:"How many newborns die within the first week of life(neonatal death)?",o:["1 million","2 million","3 million","14 million"],c:2},
+            {q:"Meningitis accounts for what percentage of neonatal deaths?",o:["1.5%","5.1%","7.2%","10.3%"],c:2},
+            {q:"Maternal mortality includes death from accidental or incidental causes.",o:["True","False"],c:1},
+            {q:"Indirect causes of maternal death include Anemia and Malaria.",o:["True","False"],c:0},
+            {q:"Birth asphyxia is the leading cause of neonatal death(21.1%).",o:["True","False"],c:0},
+            {q:"Lack of antenatal care contributed to 30% of maternal deaths.",o:["True","False"],c:1}
+        ];
+
+        const lec2 = [
+            {q:"The bony pelvis is composed of how many bones?",o:["2 bones","3 bones","4 bones(2 innominate, 1 sacrum, 1 coccyx)","5 bones"],c:2},
+            {q:"The largest portion of the hip bone, forming the upper and back part of the pelvis, is the:",o:["Ischium","Pubis","Ilium","Sacrum"],c:2},
+            {q:"The bone rests on which structure when in a sitting position?",o:["Iliac crest","Ischial tuberosities","Pubic symphysis","Sacral promontory"],c:1},
+            {q:"The Sacrum is a wedge-shaped bone composed of:",o:["3 sacral vertebrae","4 sacral vertebrae","5 sacral vertebrae","7 sacral vertebrae"],c:2},
+            {q:"The Coccyx consists of:",o:["3 coccygeal vertebrae","4 coccygeal vertebrae","5 coccygeal vertebrae","12 coccygeal vertebrae"],c:1},
+            {q:"The point of union of the 2 pubic bones is called:",o:["Sacro-iliac joint","Symphysis pubis","Sacro-coccygeal joint","Ischial spine"],c:1},
+            {q:"Which joint allows the coccyx to bend backward during the actual birth of the head?",o:["Sacro-iliac joint","Symphysis pubis","Sacro-coccygeal joint","Pubic symphysis"],c:2},
+            {q:"The Sacro-iliac joint is formed at the articulation of:",o:["The sacrum with the ilium","The two pubic bones","The sacrum and coccyx","The ischium and pubis"],c:0},
+            {q:"The pelvic floor muscles include:",o:["Iliacus & Psoas","Obturator internus","Levator ani & Coccygeus(Pubococcygeal, Iliococcygeal)","Pyriformis"],c:2},
+            {q:"The muscles located above the brim of the pelvis are:",o:["Levator ani","Iliacus & Psoas","Obturator internus","Coccygeus"],c:1},
+            {q:"The muscle located at the posterior wall of the pelvis is:",o:["Pyriformis","Iliacus","Pubococcygeal","Obturator internus"],c:0},
+            {q:"The best type of pelvis for normal delivery is:",o:["Android","Anthropoid","Gynecoid","Platypelloid"],c:2},
+            {q:"The male type pelvis is:",o:["Gynecoid","Android","Anthropoid","Platypelloid"],c:1},
+            {q:"Platypelloid pelvis is............... shaped:",o:["Kidney","Oval","Heart","Wedged and angular"],c:0},
+            {q:"All of the following criteria include in gynecoid pelvis EXCEPT:",o:["Typical female pelvis found in 50% of women","Heart shape and slightly oval inlet","Straight pelvic side walls with roomy pelvic cavity","Good sacral curve"],c:1},
+            {q:"The Gynecoid pelvis has:",o:["Round brim","Heart shaped brim","Long oval brim","Kidney shaped brim"],c:0},
+            {q:"Pelvic deviation can lead to:",o:["Shortened labor","Increased fertility","Cephalo Pelvic Disproportion(CPD)","Normal labor progress"],c:2},
+            {q:"The pelvis serves mainly to:",o:["Store urine","Regulate hormones","Aid in respiration","Support and protect reproductive and pelvic organs"],c:3},
+            {q:"The pelvis functions to:",o:["Support the trunk","Protect pelvic organs","Provide attachment for muscles","All of the above"],c:3},
+            {q:"The true pelvis is located:",o:["Above the pelvic brim","Below the pelvic brim","At the level of the umbilicus","In the abdomen"],c:1},
+            {q:"Which structure forms the posterior wall of the pelvis?",o:["Pubic bone","Sacrum","Ischium","Coccyx"],c:1},
+            {q:"The female pelvis compared to the male pelvis is:",o:["Narrower","Deeper","Broader and shallower","Heavier"],c:2},
+            {q:"Which of the following is part of the bony pelvis?",o:["Sacrum","Clitoris","Ovary","Vagina"],c:0},
+            {q:"Pelvic floor muscles include:",o:["Levator ani & pubococcygeal, iliococcygeal","Levator ani & coccygeus, iliococcygeal","Levator ani & coccygeus, pubococcygeal","Levator ani & coccygeus, pubococcygeal, iliococcygeal"],c:3},
+            {q:"The hip bone consists of all the following EXCEPT:",o:["Ilium","Pubis","Ischium","Coccyx"],c:3},
+            {q:"Pelvic bones consist of:",o:["3 bones","4 bones","5 bones","6 bones"],c:1},
+            {q:"Mons pubis is a rounded pad of............... over the symphysis pubis:",o:["Muscle tissue","Adipose tissue","Connective tissue","Epithelial tissue"],c:1},
+            {q:"Labia majora are two rounded folds of:",o:["Muscle tissue","Adipose tissue","Nervous tissue","Cartilage"],c:1},
+            {q:"The clitoris is rich in:",o:["Fat only","Blood and nerve supply","Bone","Cartilage"],c:1},
+            {q:"The vestibule contains all EXCEPT:",o:["Urethral meatus","Skene's glands","Bartholin's glands","Cervix"],c:3},
+            {q:"Vaginal pH is:",o:["1-2","4-6","7-8","9-10"],c:1},
+            {q:"The vagina is:",o:["Solid organ","Tubular structure","Gland","Bone"],c:1},
+            {q:"Functions of the vagina include all EXCEPT:",o:["Serves as excretory duct of the uterus(menstruation)","Female organ for copulation","Part of birth canal","Site of fertilization"],c:3},
+            {q:"The anterior vaginal wall measures:",o:["7-8 cm","10 cm","12 cm","15 cm"],c:0},
+            {q:"The posterior vaginal wall measures:",o:["7-8 cm","9-10 cm","12 cm","15 cm"],c:1},
+            {q:"The uterus is:",o:["Solid organ","Pear-shaped muscular organ","Circular gland","Flat structure"],c:1},
+            {q:"The upper part of uterus is called:",o:["Cervix","Isthmus","Fundus","Vagina"],c:2},
+            {q:"The layer responsible for contraction of uterus is:",o:["Endometrium","Myometrium","Perimetrium","Mucosa"],c:1},
+            {q:"The corpus of the uterus is made up of 3 layers. The middle layer is:",o:["Perimetrium","Myometrium","Endometrium","Decidua"],c:1},
+            {q:"The endometrium undergoes monthly degeneration and renewal. During pregnancy it becomes:",o:["Myometrium","Perimetrium","Decidua","Cervix"],c:2},
+            {q:"Anteverted uterus means:",o:["Fundus tilted forward(Normal position, 90° angle)","Fundus tilted backward","Uterus bending backward","Uterus slightly bends forward"],c:0},
+            {q:"Anteflexed uterus means:",o:["The fundus is tilted forward","Uterus slightly bends forward(Normal position)","Tilted backward","Bending backward"],c:1},
+            {q:"Retroverted uterus means:",o:["Tilted forward","Tilted backward","Bending forward","Normal position"],c:1},
+            {q:"The cervix connects:",o:["Uterus and ovary","Uterus and vagina","Ovary and tube","Tube and vagina"],c:1},
+            {q:"External Os is a small round opening at lower end of endocervical canal. It is............... after birth:",o:["Slit-like","Round","Circle","Oval"],c:0},
+            {q:"The length of cervical canal is:",o:["1 cm","2.5 cm","3.5 cm","5 cm"],c:1},
+            {q:"The cavity of the cervix is a narrow tube called:",o:["Uterine cavity","Cervical canal","Fallopian tube","Vaginal canal"],c:1},
+            {q:"The non-pregnant uterus has an approximate measurement of:",o:["7.5 cm long × 5 cm wide × 2.5 cm thick","10 cm × 8 cm × 5 cm","15 cm × 10 cm × 8 cm","30 cm × 30 cm × 20 cm"],c:0},
+            {q:"During pregnancy, the uterus approximately measures:",o:["15 cm × 15 cm × 10 cm","20 cm × 20 cm × 15 cm","30 cm × 30 cm × 20 cm","40 cm × 40 cm × 30 cm"],c:2},
+            {q:"The weight of non-pregnant uterus is about 60g, and at term it increases to about:",o:["500 g","700 g","900 g","1,000 g"],c:3},
+            {q:"The broad ligament:",o:["Supports the position of uterus","Extends from lateral margins of uterus to pelvic wall","Helps keep uterus in place during labor","Anchors ovary to uterus"],c:1},
+            {q:"The round ligament is composed of:",o:["Dense connective tissue only","Smooth muscle and connective tissue","Nervous tissue","Cartilage"],c:1},
+            {q:"The cardinal/transverse cervical ligament serves as:",o:["Support for the ovary","Chief uterine support and prevents uterine prolapse","Anchor for fallopian tube","Support for bladder"],c:1},
+            {q:"The uterosacral ligament provides support for the uterus at the level of:",o:["Pubic symphysis","Ischial spine","Sacral promontory","Coccyx"],c:1},
+            {q:"The ovarian ligament anchors:",o:["Upper pole of ovary to uterus","Lower pole of ovary to cornua of uterus","Ovary to pelvic wall","Ovary to bladder"],c:1},
+            {q:"The infundibulopelvic ligament is:",o:["Round ligament of uterus","Suspensory ligament of ovary(contains vessels)","Broad ligament","Cardinal ligament"],c:1},
+            {q:"Levator ani muscle:",o:["Supports the position of uterus","Contracts during ovulation","Produces hormones","Lines the uterine cavity"],c:0},
+            {q:"The uterine artery arises from:",o:["Aorta","Anterior branch of hypogastric(internal iliac) artery","Ovarian artery","Femoral artery"],c:1},
+            {q:"The ovarian artery is:",o:["Branch of hypogastric artery","A direct branch of the aorta","Branch of femoral artery","Branch of renal artery"],c:1},
+            {q:"The nerve supply of the uterus is derived principally from:",o:["Parasympathetic nervous system only","Sympathetic nervous system","Somatic nervous system","Central nervous system only"],c:1},
+            {q:"Fertilization usually occurs in:",o:["Uterus","Ovary","Ampulla of fallopian tube","Cervix"],c:2},
+            {q:"The longest part of fallopian tube is:",o:["Isthmus","Ampulla","Infundibulum","Interstitial"],c:1},
+            {q:"The fimbriae are located in:",o:["Ampulla","Isthmus","Infundibulum","Uterus"],c:2},
+            {q:"The fallopian tube is about............... in length:",o:["3-5 cm","8-14 cm","15-20 cm","20-25 cm"],c:1},
+            {q:"The interstitial portion of the fallopian tube is approximately:",o:["1 cm in length","2 cm in length","5 cm in length","8 cm in length"],c:0},
+            {q:"The isthmus of the fallopian tube is approximately:",o:["1 cm in length","2 cm in length","5 cm in length","8 cm in length"],c:1},
+            {q:"The ampulla of the fallopian tube is approximately:",o:["1 cm in length","2 cm in length","5 cm in length","8 cm in length"],c:2},
+            {q:"Functions of the fallopian tube include:",o:["Site of fertilization only","Provide transport for the ovum only","Both A and B","Produce hormones"],c:2},
+            {q:"Any malformation or malfunction of the tubes could result in:",o:["Infertility only","Ectopic pregnancy only","Sterility only","Infertility, ectopic pregnancy, or even sterility"],c:3},
+            {q:"The fallopian tubes are lined with:",o:["Simple squamous epithelium","Ciliated mucous membrane","Stratified squamous epithelium","Columnar epithelium only"],c:1},
+            {q:"The ovary function includes:",o:["Digestion","Hormone production","Respiration","Circulation"],c:1},
+            {q:"Functions of the ovaries are all the following EXCEPT:",o:["Produce, mature, and discharge ova","Produce oxytocin","Produce estrogen","Produce progesterone"],c:1},
+            {q:"The size of the ovary is:",o:["1-2 cm long","2-5 cm long","6-8 cm long","10-12 cm long"],c:1},
+            {q:"The weight of the ovary is:",o:["1-3 g","6-10 g","15-20 g","25-30 g"],c:1},
+            {q:"Layers of ovaries include all EXCEPT:",o:["Tunica albuginea","Cortex","Medulla","Myometrium"],c:3},
+            {q:"The cortex of the ovary:",o:["Is the central portion","Is the main functional part because it contains immature follicles","Contains loose connective tissue","Contains blood vessels only"],c:1},
+            {q:"The medulla of the ovary:",o:["Contains immature follicles","Is the protective layer","Is the central portion composed of loose connective tissue and vasculature","Contains graafian follicles"],c:2},
+            {q:"The tunica albuginea of the ovary:",o:["Is dense and dull white and serves as protective layer","Contains immature follicles","Is the central portion","Produces hormones"],c:0},
+            {q:"After menopause, ovarian size:",o:["Increases remarkably","Diminishes remarkably","Remains the same","Doubles"],c:1},
+            {q:"The ovary is attached to the broad ligament by:",o:["Ovarian ligaments","Mesovarium ligaments","Round ligaments","Broad ligaments"],c:1},
+            {q:"The ovary is attached to the cornua of uterus by:",o:["Ovarian ligaments","Mesovarium ligaments","Round ligaments","Infundibulopelvic ligaments"],c:0},
+            {q:"Abnormalities of the ovary include all EXCEPT:",o:["Ovarian torsion","Ovarian tumor","Ectopic pregnancy","Uterine prolapse"],c:3},
+            {q:"One breast is situated on each side of the sternum and extends between:",o:["The first and fifth rib","The second and sixth rib","The third and seventh rib","The fourth and eighth rib"],c:1},
+            {q:"The breasts are composed of approximately:",o:["5-10 lobes","15-20 lobes","25-30 lobes","30-40 lobes"],c:1},
+            {q:"The milk goes out of the nipple through:",o:["2-4 small orifices","5-7 small orifices","8-15 small orifices","20-25 small orifices"],c:2},
+            {q:"Types of nipples include all EXCEPT:",o:["Normal or protruded","Bifid or divided into two parts","Flat at the level of the skin","Elongated"],c:3},
+            {q:"The female breasts are also known as:",o:["Reproductive glands","Mammary glands","Endocrine glands","Exocrine glands only"],c:1},
+            {q:"The lactiferous sinuses act as:",o:["Permanent storage for milk","Temporary reservoirs for milk","Site of milk production","Site of hormone secretion"],c:1},
+            {q:"The Ilium is the lower part of the hip bone below the hip joint.",o:["True","False"],c:1},
+            {q:"The Sacrum is composed of 5 fused sacral vertebrae.",o:["True","False"],c:0},
+            {q:"The Symphysis pubis is united by a pad of cartilage.",o:["True","False"],c:0},
+            {q:"The pelvic floor consists of Levator ani and Coccygeus muscles.",o:["True","False"],c:0},
+            {q:"The fallopian tubes are lined with ciliated mucous membrane.",o:["True","False"],c:0},
+            {q:"The anterior wall of the vagina measures 10 cm.",o:["True","False"],c:1},
+            {q:"The posterior vaginal wall is shorter than the anterior one.",o:["True","False"],c:1},
+            {q:"The rectum lies in front of the uterus.",o:["True","False"],c:1},
+            {q:"The length of cervical canal is 3.5 cm.",o:["True","False"],c:1},
+            {q:"Nausea & vomiting is one of the sure signs of pregnancy.",o:["True","False"],c:1},
+            {q:"The relationship between the long axis of fetus to the long axis of mother is termed as position.",o:["True","False"],c:1},
+            {q:"Quickening is the first fetal movement felt by the mother.",o:["True","False"],c:0},
+            {q:"A healthy vagina has acidic pH of 4.0- 6.0.",o:["True","False"],c:0},
+            {q:"The ovary has a peritoneal covering.",o:["True","False"],c:1},
+            {q:"Scarring due to ovulation causes pitting of the ovary surface.",o:["True","False"],c:0},
+            {q:"The endometrium is about 15 mm thick during pregnancy.",o:["True","False"],c:0},
+            {q:"The myometrium has three layers: longitudinal, living ligature, and circular.",o:["True","False"],c:0},
+            {q:"The living ligature layer has the ability to stop bleeding postpartum.",o:["True","False"],c:0},
+            {q:"The circular layer of myometrium has the function of keeping cervix closed.",o:["True","False"],c:0},
+            {q:"The hymen can be broken through first coitus, strenuous physical activity, or masturbation.",o:["True","False"],c:0},
+            {q:"The vagina contains lactic acid to protect it from infection.",o:["True","False"],c:0},
+            {q:"The uterus size increases from 60g to about 1,000g at term.",o:["True","False"],c:0},
+            {q:"The nipple is composed of erectile tissue containing plain muscle fibers.",o:["True","False"],c:0},
+            {q:"Each lobe of the breast is divided into lobules forming cavities called alveoli.",o:["True","False"],c:0}
+        ];
+
+        const lec3 = [
+            {q:"The female reproductive cycle describes the regular and recurrent changes in all the following EXCEPT:",o:["Hypothalamus","Anterior pituitary","Ovaries","Kidneys"],c:3},
+            {q:"The female reproductive cycle is often called the menstrual cycle because:",o:["It lasts 28 days","Menstruation provides a marker for each cycle's beginning and ends if pregnancy does not occur","It involves the ovaries","It prepares the body for pregnancy"],c:1},
+            {q:"The average age of onset of menarche is:",o:["9 years","10 years","12 or 13 years","17 years"],c:2},
+            {q:"The average range of age for menarche is:",o:["7 to 10 years","9 to 17 years","12 to 15 years","15 to 20 years"],c:1},
+            {q:"The duration of the menstrual cycle is about:",o:["21 days","28 days","35 days","14 days"],c:1},
+            {q:"The duration of menstrual flows averages:",o:["1 to 3 days","3 to 7 days","7 to 10 days","10 to 14 days"],c:1},
+            {q:"The first day of the menstrual period is counted as:",o:["Day 1 of the woman's cycle","Day 14 of the woman's cycle","Day 28 of the woman's cycle","Last day of the cycle"],c:0},
+            {q:"The amount of menstrual flow averages:",o:["10 to 20 ml per menstrual period","25 to 50 ml per menstrual period","60 to 80 ml per menstrual period","100 to 150 ml per menstrual period"],c:1},
+            {q:"The color of menstrual flow is:",o:["Bright red","Dark red; a combination of blood, mucus, and endometrial cells","Pink","Brown"],c:1},
+            {q:"The female reproductive cycle is further divided into two cycles that reflect changes in:",o:["Ovaries and cervix","Uterus and vagina","Ovaries and uterine endometrium","Hypothalamus and pituitary"],c:2},
+            {q:"The two cycles of the female reproductive cycle are:",o:["Ovarian cycle and Endometrial cycle","Follicular cycle and Luteal cycle","Menstrual cycle and Ovulatory cycle","Proliferative cycle and Secretory cycle"],c:0},
+            {q:"The phases of the Ovarian cycle include all EXCEPT:",o:["Follicular phase","Ovulatory phase","Luteal phase","Menstrual phase"],c:3},
+            {q:"The phases of the Endometrial cycle include all EXCEPT:",o:["Proliferative phase","Secretory phase","Menstrual phase","Ovulatory phase"],c:3},
+            {q:"In response to GnRH from the hypothalamus, the anterior pituitary secretes:",o:["Estrogen and Progesterone","FSH and LH","hCG and Prolactin","Oxytocin and ADH"],c:1},
+            {q:"The ovarian cycle consists of three phases:",o:["Proliferative, Secretory, and Menstrual","Follicular, Ovulatory, and Luteal","Follicular, Luteal, and Menstrual","Ovulatory, Secretory, and Proliferative"],c:1},
+            {q:"The follicular phase begins with:",o:["Ovulation","The first day of menstruation","The luteal phase","Day 14 of the cycle"],c:1},
+            {q:"In a 28-day cycle, the follicular phase ends about:",o:["7 days later","14 days later","21 days later","28 days later"],c:1},
+            {q:"The length of which phase varies more among different women than do the length of other two phases?",o:["Follicular phase","Ovulatory phase","Luteal phase","Menstrual phase"],c:0},
+            {q:"As the FSH and LH levels raise slightly, how many graafian follicles begin growing?",o:["1 to 3","3 to 5","6 to 12","15 to 20"],c:2},
+            {q:"Each follicle secretes fluid containing high level of:",o:["Progesterone","Estrogen","FSH","LH"],c:1},
+            {q:"The mature follicle secretes large amount of estrogen, which:",o:["Stimulates FSH secretion","Depresses FSH secretion","Stimulates LH secretion","Has no effect on FSH"],c:1},
+            {q:"The dip in FSH secretion just before ovulation:",o:["Stimulates further maturation of all follicles","Blocks further maturation of the less developed follicles","Causes menstruation","Triggers ovulation"],c:1},
+            {q:"Occasionally, more than one follicle matures and releases its ovum, which can lead to:",o:["Miscarriage","Ectopic pregnancy","Multifetal pregnancy","Infertility"],c:2},
+            {q:"Near the middle of a 28-day reproductive cycle, about how many days before ovulation does LH secretion rise markedly?",o:["1 day","2 days","5 days","7 days"],c:1},
+            {q:"Ovulation marks the beginning of which phase of the female reproductive cycle?",o:["Follicular phase","Proliferative phase","Luteal phase","Menstrual phase"],c:2},
+            {q:"Ovulation occurs about 14 days:",o:["After the next menstrual period","Before the next menstrual period","After ovulation","Before the previous menstrual period"],c:1},
+            {q:"At ovulation, a blister-like projection forms on the wall of the follicle, the follicle ruptures, and the ovum is released from the surface of the ovary, where it is picked up by:",o:["The uterus","The cervix","The fimbriated end of the fallopian tube","The vagina"],c:2},
+            {q:"After ovulation and under the influence of LH, the remaining cells of the old follicle persist for about how many days as a corpus luteum?",o:["5-7 days","12-14 days","20-22 days","28-30 days"],c:1},
+            {q:"The corpus luteum secretes estrogen and large amount of:",o:["FSH","LH","Progesterone","hCG"],c:2},
+            {q:"The function of progesterone secreted by the corpus luteum is to:",o:["Stimulate ovulation","Cause menstruation","Prepare the endometrium for a fertilized ovum","Inhibit FSH secretion"],c:2},
+            {q:"Levels of FSH and LH decrease during the luteal phase in response to:",o:["Low levels of estrogen and progesterone","High levels of estrogen and progesterone","High levels of FSH","Low levels of hCG"],c:1},
+            {q:"If the ovum is fertilized, it secretes a human chorionic gonadotropin(hCG) that causes:",o:["Regression of the corpus luteum","Persistence of the corpus luteum to maintain an early pregnancy","Menstruation","Ovulation"],c:1},
+            {q:"If the ovum is not fertilized, FSH and LH fall to low levels, and:",o:["The corpus luteum persists","The corpus luteum regresses","hCG is secreted","Pregnancy is maintained"],c:1},
+            {q:"Decline of estrogen and progesterone with corpus luteum regression results in:",o:["Ovulation","Fertilization","Menstruation as the uterine lining breaks down","Implantation"],c:2},
+            {q:"The loss of estrogen and progesterone from the corpus luteum at the end of one cycle stimulates the anterior pituitary to again secrete more FSH and LH, initiating:",o:["Menstruation only","A new female reproductive cycle","Pregnancy","Ovulation"],c:1},
+            {q:"The old corpus luteum is replaced by fibrous tissue called the:",o:["Corpus luteum","Corpus albicans","Graafian follicle","Zona pellucida"],c:1},
+            {q:"The uterine endometrium responds to ovarian hormone stimulation with cyclic changes. Three phases mark the changes in the endometrium:",o:["Follicular, Ovulatory, and Luteal","Proliferative, Secretory, and Menstrual","Menstrual, Follicular, and Secretory","Luteal, Proliferative, and Ovulatory"],c:1},
+            {q:"The endometrial cycle is divided into four phases:",o:["Follicular, Ovulatory, Luteal, and Menstrual","Proliferative, Secretory, Ischemic, and Menstrual","Menstrual, Proliferative, Ovulatory, and Secretory","Follicular, Secretory, Ischemic, and Luteal"],c:1},
+            {q:"The proliferative phase takes place as the ovum matures and is released during:",o:["The second half of the ovarian cycle","The first half of the ovarian cycle","The luteal phase","The menstrual phase"],c:1},
+            {q:"After completion of the menstrual period, the endometrium is:",o:["Very thick","At maximum thickness","Very thin","Shedding"],c:2},
+            {q:"The basal layer of endometrial cells:",o:["Is shed during menstruation","Remains after menstruation","Forms the functional layer","Secretes progesterone"],c:1},
+            {q:"These cells multiply to form new endometrial epithelium and endometrial glands under the stimulation of estrogen secreted by the:",o:["Corpus luteum","Maturing ovarian follicle","Placenta","Hypothalamus"],c:1},
+            {q:"Endometrial spiral arteries and endometrial veins elongate to accompany thickening of the functional endometrial layer and to:",o:["Shed the endometrium","Nourish the proliferating cells","Cause menstruation","Trigger ovulation"],c:1},
+            {q:"As ovulation time approaches, the endometrial glands secrete:",o:["Thick, sticky mucus","Thin, stringy mucus that aids entry of sperms into the uterus","Progesterone","hCG"],c:1},
+            {q:"The secretory phase occurs during:",o:["The first half of the ovarian cycle","The last half of the ovarian cycle","The follicular phase","The menstrual phase"],c:1},
+            {q:"The endometrium continues to thicken under the influence of estrogen and progesterone secreted from the corpus luteum, reaching its maximum thickness of:",o:["1 to 2 mm","3 to 4 mm","5 to 6 mm","10 to 12 mm"],c:2},
+            {q:"The blood vessels and endometrial glands become:",o:["Thin and constricted","Twisted and dilated","Straight and narrow","Short and thick"],c:1},
+            {q:"Progesterone from the corpus luteum causes the thick endometrium to secrete substances, to nourish a fertilized ovum, large quantities of all the following EXCEPT:",o:["Glycogen","Proteins","Lipids","Blood"],c:3},
+            {q:"If fertilization does not occur, the corpus luteum regresses and production of estrogen and progesterone:",o:["Increases","Falls","Remains the same","Doubles"],c:1},
+            {q:"About 2 days before the onset of the menses, vasospasm of endometrial blood vessels causes the endometrium to become:",o:["Thick and healthy","Ischemic and necrotic","Thin and proliferating","Secretory"],c:1},
+            {q:"The necrotic areas of endometrium separate from the basal layer, resulting in:",o:["Ovulation","Fertilization","The menstrual flow","Implantation"],c:2},
+            {q:"During most of the female reproductive cycle, the mucus of the cervix is:",o:["Thin, clear, and elastic","Scant, thick, and sticky","Watery and abundant","Blood-tinged"],c:1},
+            {q:"Just before ovulation, cervical mucus becomes:",o:["Scant, thick, and sticky","Thin, clear, and elastic","Dry and absent","Bloody"],c:1},
+            {q:"The change in cervical mucus just before ovulation is to promote:",o:["Menstruation","Implantation","Passage of sperms into the uterus and fallopian tube","Ovulation"],c:2},
+            {q:"It's estimated that as many as how many of every 4 menstruating women have experienced some form of premenstrual syndrome?",o:["1 of every 4","2 of every 4","3 of every 4","4 of every 4"],c:2},
+            {q:"Regardless of symptom severity, the signs and symptoms of PMS generally disappear within:",o:["1 day of the start of the menstrual period","2 days of the start of the menstrual period","4 days of the start of the menstrual period","7 days of the start of the menstrual period"],c:2},
+            {q:"Emotional and behavioral symptoms of PMS include all EXCEPT:",o:["Tension or anxiety","Depressed mood","Mood swings and irritability","Euphoria"],c:3},
+            {q:"Physical signs and symptoms of PMS include all EXCEPT:",o:["Joint or muscle pain","Headache","Breast tenderness","Increased energy"],c:3},
+            {q:"Weight gain related to fluid retention is a:",o:["Emotional symptom of PMS","Physical symptom of PMS","Sign of pregnancy","Sign of ovulation"],c:1},
+            {q:"Dietary recommendations for menstrual health include:",o:["Eat larger, less-frequent meals","Eat smaller, more-frequent meals to reduce the sensation of fullness","Increase salt intake","Avoid fruits and vegetables"],c:1},
+            {q:"To reduce bloating and fluid retention, women should:",o:["Increase salt intake","Limit salt and salty foods","Drink more caffeine","Avoid water"],c:1},
+            {q:"Foods high in complex carbohydrates include:",o:["Candy and sweets","White bread only","Fruits, vegetables, and whole grains","Processed foods"],c:2},
+            {q:"Many women need iron supplementation to:",o:["Increase calcium absorption","Replace iron lost in menstruation","Prevent pregnancy","Reduce menstrual flow"],c:1},
+            {q:"If you can't tolerate dairy products or aren't getting adequate calcium in your diet:",o:["Avoid calcium completely","A daily calcium supplement may help","Increase iron intake instead","Stop eating all foods"],c:1},
+            {q:"During menstruation, women should avoid:",o:["Water","Fruits","Caffeine and alcohol","Vegetables"],c:2},
+            {q:"Moderate exercise during menses:",o:["Should be avoided completely","Is good to continue","Causes infertility","Increases menstrual flow"],c:1},
+            {q:"Excess exercise can cause:",o:["Menorrhagia","Amenorrhea","Dysmenorrhea","Ovulation"],c:1},
+            {q:"Women should engage in at least how many minutes of brisk walking, cycling, swimming, or other aerobic activity most days of the week?",o:["10 minutes","20 minutes","30 minutes","60 minutes"],c:2},
+            {q:"Regular daily exercise can help improve overall health and alleviate certain symptoms such as:",o:["Menstrual flow","Fatigue and a depressed mood","Ovulation","Fertilization"],c:1},
+            {q:"To reduce stress during menstruation, women should:",o:["Avoid sleep","Get plenty of sleep","Increase caffeine intake","Avoid exercise"],c:1},
+            {q:"Practice progressive muscle relaxation or deep-breathing exercises can help reduce:",o:["Menstrual flow","Headaches, anxiety, or trouble sleeping(insomnia)","Ovulation","Fertilization"],c:1},
+            {q:"For pain relief during menstruation:",o:["Only strong opioids are helpful","Any mild analgesic is helpful. Applying heat and abdominal breathing are also helpful","No pain relief is needed","Only surgery is helpful"],c:1},
+            {q:"More rest may be helpful if dysmenorrhea interferes with:",o:["Eating","Sleep at night","Exercise","Working"],c:1},
+            {q:"Fertilization is defined as:",o:["Embedding of the fertilized ovum","Union of mature ovum and sperm to form zygote","Development of the embryo","Ovulation"],c:1},
+            {q:"Decidua is defined as:",o:["The developing human during the first 8 weeks","Endometrium during pregnancy","The fertilized ovum","The placenta"],c:1},
+            {q:"Implantation is defined as:",o:["Union of ovum and sperm","Embedding of the fertilized ovum in the upper uterine segment","Development of the embryo","Ovulation"],c:1},
+            {q:"The embryo is the developing human during:",o:["The first 4 weeks of pregnancy","The first 8 weeks of pregnancy","The first 12 weeks of pregnancy","The rest of pregnancy"],c:1},
+            {q:"The fetus is the developing human during:",o:["The first 8 weeks of pregnancy","The rest of pregnancy","The first trimester only","The second trimester only"],c:1},
+            {q:"At ovulation, the mature follicle reaches the surface of the ovary and the follicle rupture due to:",o:["Decreased intrafollicular pressure","Increased intrafollicular pressure and enzymatic changes","Low estrogen levels","High progesterone levels"],c:1},
+            {q:"The ovum leaves the ovary after it already undergone the first maturation(meiotic) division which reduces the chromosomal number in its nucleus to:",o:["46 chromosomes(diploid number)","23 chromosomes(haploid number)","22 chromosomes","44 chromosomes"],c:1},
+            {q:"Usually ovulation occurs about the 12th or 14th day:",o:["After the onset of the next menstruation","Before the onset of the next menstruation","After ovulation","Before the previous menstruation"],c:1},
+            {q:"Following ovulation, the ovum is surrounded by a ring of mucopolysaccharide fluid called the:",o:["Corona Radiata","Zona pellucida","Decidua","Trophoblast"],c:1},
+            {q:"The circle of cells surrounding the ovum after ovulation is called:",o:["Zona pellucida","Corona Radiata","Trophoblast","Embryoblast"],c:1},
+            {q:"The two layers(Zona pellucida and Corona Radiata) increase the bulk of the ovum, facilitating:",o:["Ovulation","Its migration to the uterus and also, serve as a protection from injury","Fertilization only","Implantation only"],c:1},
+            {q:"The ovum escapes into the peritoneal cavity then it is picked up by:",o:["The uterus","The cervix","The fimbriated end of the fallopian tube which surrounds the ovary","The vagina"],c:2},
+            {q:"The female reproductive cycle describes the regular and recurrent changes in the hypothalamus, anterior pituitary, ovaries, and uterine endometrium.",o:["True","False"],c:0},
+            {q:"The average age of onset of menarche is 15 years.",o:["True","False"],c:1},
+            {q:"The duration of the menstrual cycle is about 35 days.",o:["True","False"],c:1},
+            {q:"The duration of menstrual flows averages 10 to 14 days.",o:["True","False"],c:1},
+            {q:"The first day of the menstrual period is counted as day 14 of the woman's cycle.",o:["True","False"],c:1},
+            {q:"The amount of menstrual flow averages 100 to 150 ml per menstrual period.",o:["True","False"],c:1},
+            {q:"The color of menstrual flow is bright red.",o:["True","False"],c:1},
+            {q:"The ovarian cycle consists of the follicular, ovulatory, and luteal phases.",o:["True","False"],c:0},
+            {q:"The endometrial cycle consists of the proliferative, secretory, and menstrual phases.",o:["True","False"],c:0},
+            {q:"The follicular phase begins with ovulation.",o:["True","False"],c:1},
+            {q:"The length of the luteal phase varies more among different women than do the length of other two phases.",o:["True","False"],c:1},
+            {q:"As the FSH and LH levels raise slightly, 6 to 12 graafian follicles begin growing.",o:["True","False"],c:0},
+            {q:"Each follicle secretes fluid containing high level of progesterone.",o:["True","False"],c:1},
+            {q:"The mature follicle secretes large amount of estrogen, which stimulates FSH secretion.",o:["True","False"],c:1},
+            {q:"Ovulation occurs about 14 days after the next menstrual period.",o:["True","False"],c:1},
+            {q:"After ovulation, the remaining cells of the old follicle persist for about 12-14 days as a corpus luteum.",o:["True","False"],c:0},
+            {q:"The corpus luteum secretes estrogen and large amount of FSH.",o:["True","False"],c:1},
+            {q:"If the ovum is fertilized, it secretes hCG that causes persistence of the corpus luteum.",o:["True","False"],c:0},
+            {q:"If the ovum is not fertilized, the corpus luteum persists.",o:["True","False"],c:1},
+            {q:"The old corpus luteum is replaced by fibrous tissue called the corpus albicans.",o:["True","False"],c:0},
+            {q:"The proliferative phase takes place during the second half of the ovarian cycle.",o:["True","False"],c:1},
+            {q:"After completion of the menstrual period, the endometrium is very thick.",o:["True","False"],c:1},
+            {q:"The basal layer of endometrial cells is shed during menstruation.",o:["True","False"],c:1},
+            {q:"The secretory phase occurs during the last half of the ovarian cycle.",o:["True","False"],c:0},
+            {q:"The endometrium reaches its maximum thickness of 10 to 12 mm.",o:["True","False"],c:1},
+            {q:"If fertilization does not occur, the corpus luteum regresses and production of estrogen and progesterone increases.",o:["True","False"],c:1},
+            {q:"During most of the female reproductive cycle, the mucus of the cervix is thin, clear, and elastic.",o:["True","False"],c:1},
+            {q:"Just before ovulation, cervical mucus becomes thin, clear, and elastic.",o:["True","False"],c:0},
+            {q:"It's estimated that as many as 1 of every 4 menstruating women have experienced some form of premenstrual syndrome.",o:["True","False"],c:1},
+            {q:"The signs and symptoms of PMS generally disappear within 7 days of the start of the menstrual period.",o:["True","False"],c:1},
+            {q:"Excess exercise can cause amenorrhea.",o:["True","False"],c:0},
+            {q:"Women should engage in at least 60 minutes of aerobic activity most days of the week.",o:["True","False"],c:1},
+            {q:"Fertilization is defined as the union of mature ovum and sperm to form zygote.",o:["True","False"],c:0},
+            {q:"Decidua is the endometrium during pregnancy.",o:["True","False"],c:0},
+            {q:"The embryo is the developing human during the first 12 weeks of pregnancy.",o:["True","False"],c:1},
+            {q:"The fetus is the developing human during the first 8 weeks of pregnancy.",o:["True","False"],c:1},
+            {q:"At ovulation, the follicle rupture due to decreased intrafollicular pressure.",o:["True","False"],c:1},
+            {q:"The ovum leaves the ovary after it already undergone the first maturation division which reduces the chromosomal number to 46 chromosomes.",o:["True","False"],c:1},
+            {q:"Following ovulation, the ovum is surrounded by a ring of mucopolysaccharide fluid called the Zona pellucida.",o:["True","False"],c:0}
+        ];
+
+        const lec4 = [
+            {q:"The most correct sequence of early development following fertilization is:",o:["Zygote, morula, blastocyst","Oocyte, zygote, morula, blastocyst","Zygote, conceptus, blastocyst","Polar bodies, zygote, conceptus, blastocyst"],c:0},
+            {q:"Early cell division of the fertilized ovum produces a:",o:["Morula","Trophoblast","Blastocyst","Zygote"],c:0},
+            {q:"The union of which of the following structures is responsible for the formation of the placenta?",o:["Amnion & chorion laeve","Chorionic frondosum & decidua basalis","Embryo & decidua capsularis","Decidua vera & chorion frondosum"],c:1},
+            {q:"The implantation of the fertilized human ovum occurs approximately at what time after fertilization?",o:["One day","Three days","Five days","Seven days"],c:3},
+            {q:"Which answer best describes the stage of pregnancy in which maternal and fetal blood are exchanged?",o:["Conception","9 weeks’ gestation","32–34 weeks gestation","Maternal and fetal blood are never exchanged"],c:3},
+            {q:"A woman is trying to prevent pregnancy by using the rhythm method. At what time during a woman's cycle is she the most fertile?",o:["Cycle days 21–28","Cycle days 1–6","Cycle days 9–16","Cycle days 6–9"],c:2},
+            {q:"During which phase of the menstrual cycle does the endometrium thicken?",o:["Secretory","Luteal","Ovulation","Proliferative"],c:3},
+            {q:"The chief function of progesterone is:",o:["Stimulation of the follicles for ovulation occur","Establishment of secondary male sex characteristics","Preparation of the uterus to receive a fertilized egg","Development of the female reproductive system"],c:2},
+            {q:"Which of the following symptoms indicate that a woman is about to ovulate?",o:["Decrease in basal body temperature","Acne flareup","Thickening of cervical mucus","Thinning of cervical mucus"],c:3},
+            {q:"During which cycle day of a typical 28-day menstrual cycle does the follicular phase occur?",o:["Cycle days 7–14","Cycle days 14–28","Cycle days 1–6","Cycle days 1–13"],c:3},
+            {q:"In a lecture on menstrual cycle, the nurse plans to include the fact that ovulation occurs when the:",o:["Oxytocin is too high","Blood level of LH is too high","Endometrial wall is sloughed off","Progesterone level is high"],c:1},
+            {q:"A nursing instructor is reviewing the functions of the female reproductive system. She asks Ahmed to describe FSH and LH. Ahmed accurately responds by stating that:",o:["FSH and LH are released from the anterior pituitary gland","FSH and LH are secreted by the corpus luteum of the ovary","FSH and LH are secreted by the hypothalamus","FSH and LH stimulate the formation of milk during pregnancy"],c:0},
+            {q:"During which cycle days does the proliferative stage occur?",o:["Cycle days 7–14","Cycle days 14–28","Cycle days 1–6","Cycle days 1–14"],c:0},
+            {q:"Which of the following statements is correct about the zona pellucida?",o:["Surrounds the oocyte in the ovary","Protects oocyte in the uterine tube","Is important for fertilization","All of the above"],c:3},
+            {q:"The cell whose function is to produce food/ nourishment for the embryo is:",o:["Morula","Amnion","Blastocyst","Trophoblast"],c:3},
+            {q:"Which of the following statements is true regarding embryonic origin?",o:["Both decidua & trophoblast are of maternal origin","Neither decidua nor trophoblast are of maternal origin","Decidua is of fetal origin","None of the above"],c:3},
+            {q:"If fertilization occurs, the corpus luteum acts as a temporary endocrine structure until the placenta is fully developed to take over hormone secretion. This occurs at approximately:",o:["20 weeks gestation","10 weeks gestation","2 weeks gestation","4 weeks gestation"],c:1}
+        ];
+
+        const lec5 = [
+            {q:"Which of the following is categorized as a Presumptive(Subjective) sign of pregnancy?",o:["Fetal heart tones heard by Doppler","Amenorrhea, nausea/vomiting, and breast tenderness","Positive human Chorionic Gonadotropin(hCG) urine test","Ultrasound visualization of the gestational sac"],c:1},
+            {q:"Softening of the lower uterine segment observed during pelvic examination is known as:",o:["Chadwick's sign","Goodell's sign","Hegar's sign","McDonald's sign"],c:2},
+            {q:"Bluish or purplish discoloration of the cervix, vagina, and vulva due to increased vascularity is termed:",o:["Chadwick's sign","Goodell's sign","Hegar's sign","Braxton Hicks sign"],c:0},
+            {q:"Softening of the cervical tip identified around 6 weeks of gestation is called:",o:["Hegar's sign","Goodell's sign","Chadwick's sign","Piskacek's sign"],c:1},
+            {q:"Which of the following signs is considered a Diagnostic/ Positive sign of pregnancy?",o:["Uterine enlargement","Positive serum pregnancy test(hCG)","Audible fetal heartbeat by Doppler or fetoscope","Braxton Hicks contractions"],c:2},
+            {q:"The maternal perception of fetal movement, usually felt between 16 to 20 weeks of gestation, is known as:",o:["Ballottement","Quickening","Lightening","Engagement"],c:1},
+            {q:"Rebound tap of the unengaged fetus felt during vaginal examination is known as:",o:["Ballottement","Quickening","Goodell's sign","Chloasma"],c:0},
+            {q:"Human Chorionic Gonadotropin(hCG) is secreted primarily by which structure in early pregnancy?",o:["Corpus luteum","Syncytiotrophoblast","Decidua basalis","Amniotic membrane"],c:1},
+            {q:"Using Naegele's rule, if a client's Last Menstrual Period(LMP) was November 10, what is the Estimated Date of Delivery(EDD)?",o:["August 17 of the following year","August 10 of the following year","August 3 of the following year","August 24 of the following year"],c:0},
+            {q:"Which sign of pregnancy can be mimicked by conditions such as uterine fibroids or hydatidiform mole?",o:["Active fetal movements felt by an examiner","Visualization of fetus on sonogram","Probable sign(e.g., Uterine enlargement/ Positive hCG)","Detection of fetal heart rate by Doppler"],c:2},
+            {q:"Which of the following findings in a woman would be consistent with a pregnancy of two months duration:",o:["Weight gain 6–10 lbs & striae gravidarum","Fullness of breast and urinary frequency","Braxton Hicks contractions & quickening","Increased respiratory rate & ballottement"],c:1},
+            {q:"During auscultation of maternal abdomen, the nurse heard a soft blowing sound that corresponds to the maternal pulse. This sound is called:",o:["Fetal souffle","Uterine souffle","Fetal heart rate","Funic souffle"],c:1},
+            {q:"The hormone responsible for a positive pregnancy test is:",o:["Estrogen","Progesterone","Human Chorionic Gonadotropin","Follicle Stimulating hormone"],c:2},
+            {q:"Which of the following is a positive sign of pregnancy?",o:["Breast changes","Nausea and vomiting","Amenorrhea","Fetal heart sounds"],c:3},
+            {q:"The most reliable method for early pregnancy diagnosis is:",o:["Ultrasound","Urine pregnancy test","Abdominal palpation","Breast examination"],c:0},
+            {q:"A nurse midwife is performing an assessment of a pregnant client and is assessing the client for the presence of ballottement. Which of the following would the nurse implement to test for the presence of ballottement?",o:["Auscultating for fetal heart sounds","Palpating the abdomen for fetal movement","Assessing the cervix for thinning","Initiating a gentle upward tap on the cervix"],c:3}
+        ];
+
+        const lec6 = [
+            {q:"During pregnancy, cardiac output:",o:["Decreases","Stops temporarily","Increases","Remains the same"],c:2},
+            {q:"Heart rate increases during pregnancy by:",o:["2–5 beats","5–10 beats","10–15 beats","20–30 beats"],c:2},
+            {q:"The nurse recognizes that an expected change in the hematologic system that occurs during the 2nd trimester of pregnancy is:",o:["A decrease in WBC's","An increase in hematocrit","An increase in blood volume","A decrease in sedimentation rate"],c:2},
+            {q:"The increased blood volume during normal pregnancy is made up of:",o:["Plasma only","More plasma than erythrocytes","More erythrocytes than plasma","Erythrocytes only"],c:1},
+            {q:"Lowered hemoglobin during normal pregnancy is a physiological finding. It is mainly due to:",o:["Low iron stores in all women","Blood lost to the placenta","Increased plasma volume","Decreased reticulocytosis"],c:2},
+            {q:"Which of the following conditions is common in pregnant women in the 2nd trimester of pregnancy?",o:["Mastitis","Respiratory acidosis","Physiologic anemia","Physiologic edema"],c:2},
+            {q:"In normal physiological changes in pregnancy, all of the following are increased EXCEPT:",o:["Glomerular filtration rate","Stroke volume","Peripheral resistance","White blood cells"],c:2},
+            {q:"What hormone is responsible for the decrease in systemic vascular resistance during pregnancy?",o:["Progesterone","Estrogen","Vasopressin","HCG"],c:0},
+            {q:"Supine hypotension syndrome occurs due to pressure on:",o:["Aorta","Inferior vena cava","Pulmonary artery","Kidney"],c:1},
+            {q:"Varicose veins occur during pregnancy due to:",o:["Increased arterial flow","Venous stasis","Decreased blood volume","Infection"],c:1},
+            {q:"Which of the following is a common respiratory change in pregnancy?",o:["Lung collapse","Decreased oxygen consumption","Decreased respiratory rate","Increased tidal volume"],c:3},
+            {q:"In the later part of the 3rd trimester, the mother may experience shortness of breath. This complaint is explained as:",o:["A normal occurrence because the fetus is using more oxygen","The fundus of the uterus is high pushing the diaphragm upwards","The woman is having an allergic reaction to pregnancy hormones","The woman may be experiencing a complication of pregnancy"],c:1},
+            {q:"During pregnancy, glomerular filtration rate(GFR):",o:["Remains constant","Stops","Increases","Decreases"],c:2},
+            {q:"Changes in the urinary tract system in pregnancy include:",o:["Increase the glomerular filtration rate(GFR)","Decrease in renal plasma flow(RPF)","Marked increase in both GFR & RPF when the patient is supine","Increase in BUN & creatinine"],c:0},
+            {q:"Which of the following findings in the urinary system is considered a physiological finding during pregnancy?",o:["Sugar in the urine in trace amounts","Nitrites in the urine","Increase pus cells in urine","High protein levels in urine"],c:0},
+            {q:"All of the following changes occur in the urinary system during normal pregnancy EXCEPT:",o:["Increase renal blood flow","Increase glomerular filtration rate","Increase capacity of kidney pelvis","Increase protein in urine"],c:3},
+            {q:"Glucosuria in pregnancy is due to:",o:["Low GFR","High GFR","Infection","Bleeding"],c:1},
+            {q:"Hydroureter is:",o:["Kidney infection","Dilatation of ureter","Bladder rupture","Decreased urine"],c:1},
+            {q:"Hydronephrosis means:",o:["Bladder infection","Kidney dilation","Ureter rupture","Decreased urine"],c:1},
+            {q:"Urinary frequency occurs mainly in:",o:["First trimester only","Second trimester only","First and third trimester","Never"],c:2},
+            {q:"The most common gastrointestinal symptom in early pregnancy is:",o:["Diarrhea","Constipation","Nausea and vomiting","Heartburn"],c:2},
+            {q:"Constipation occurs during pregnancy due to:",o:["Increased motility","Decreased motility","Infection","High insulin"],c:1},
+            {q:"Heartburn in pregnancy is due to:",o:["Increased acidity","Relaxation of cardiac sphincter","Infection","High BP"],c:1},
+            {q:"Gallstones in pregnancy are caused by:",o:["Thin bile","Thick bile","Low hormones","Infection"],c:1},
+            {q:"The following are physiological changes of pregnancy in skin EXCEPT:",o:["Chloasma","Maculo-papular rash","Linea Nigra","Stretch Marks"],c:1},
+            {q:"The main cause of gingivitis in pregnancy is:",o:["Decreased blood flow","Increased estrogen","Infection only","Poor diet"],c:1},
+            {q:"After the first four months of pregnancy, the chief source of estrogen and progesterone is the:",o:["Placenta","Adrenal cortex","Corpus luteum","Anterior hypophysis"],c:0},
+            {q:"Increased insulin resistance in pregnancy is caused by:",o:["Estrogen","Progesterone & HPL","Prolactin","Oxytocin"],c:1},
+            {q:"Absorption of iron is improved by:",o:["Vitamin D","Calcium products","Fresh fruits","Vitamin C"],c:3},
+            {q:"Absorption of iron is inhibited by:",o:["Folic acid","Fresh fruits","Vitamin C","Calcium products"],c:3},
+            {q:"Blood pressure increases during pregnancy.",o:["True","False"],c:1},
+            {q:"Cardiac output increases during pregnancy.",o:["True","False"],c:0},
+            {q:"Progesterone causes muscle relaxation.",o:["True","False"],c:0},
+            {q:"Constipation is common in pregnancy.",o:["True","False"],c:0},
+            {q:"UTI risk decreases in pregnancy.",o:["True","False"],c:1},
+            {q:"Estrogen increases blood flow to tissues.",o:["True","False"],c:0},
+            {q:"Varicose veins may occur during pregnancy.",o:["True","False"],c:0},
+            {q:"Dyspnea may occur in pregnancy.",o:["True","False"],c:0},
+            {q:"Ovulation continues during pregnancy.",o:["True","False"],c:1},
+            {q:"During pregnancy, the uterine smooth muscle is quiescent. As a result, forceful uterine contractions do not occur until the ninth month of pregnancy. What explains the quiescence of uterine smooth muscle during gestation?",o:["Oxytocin inhibits contraction of uterine smooth muscle","Low levels of blood flow to uterine smooth muscle","Prostaglandins inhibit contraction of uterine smooth muscle","High levels of progesterone suppress uterine contraction"],c:3},
+            {q:"What is the major cause of the decrease in residual volume in a pregnant woman?",o:["Increased respiratory rate","Increase of the overall vital capacity","Elevation of the diaphragm","Estrogen and progesterone hormonal interactions"],c:2},
+            {q:"When involved in prenatal teaching, the nurse should advise the clients that an increase in vaginal secretions during pregnancy is called leukorrhea and is caused by increased:",o:["Metabolic rates","Production of estrogen","Functioning of the Bartholin glands","Supply of sodium chloride to the vagina"],c:1},
+            {q:"What results would you find if you were to take an arterial blood gas during a typical pregnancy?",o:["Compensated metabolic acidosis","Metabolic alkalosis","Compensated respiratory alkalosis","Respiratory acidosis"],c:2},
+            {q:"The nurse teaches a pregnant woman to avoid lying on her back. The nurse has based this statement on the fact that:",o:["Cause increased placental perfusion","Interfere with free movement of the coccyx","Unduly prolong labor","Lead to transient episodes of hypotension"],c:3},
+            {q:"Which hormone is mainly responsible for maintaining pregnancy?",o:["Progesterone","Prolactin","Estrogen","Oxytocin"],c:0}
+        ];
+
+        const lec7 = [
+            {q:"Enumerate the benefits of family planning:",o:["Prevents pregnancy-related health risks","Reduces infant mortality","Empowers people and enhances education","All of the above"],c:3},
+            {q:"A woman is trying to prevent pregnancy by using the rhythm method. At what time during a woman's cycle is she the most fertile?",o:["Cycle days 21–28","Cycle days 1–6","Cycle days 9–16","Cycle days 6–9"],c:2},
+            {q:"Which of the following symptoms indicate that a woman is about to ovulate?",o:["Decrease in basal body temperature","Acne flareup","Thickening of cervical mucus","Thinning of cervical mucus"],c:3}
+        ];
+
+        const lec8 = [
+            {q:"The term antenatal care refers to:",o:["Care after childbirth","Emergency obstetric care","Planned examination and observation from conception till birth","Postpartum counseling"],c:2},
+            {q:"The main goal of antenatal care is to:",o:["Prevent pregnancy","Train risks","Promote, protect, and maintain the health of the mother","Increase hospital admissions"],c:2},
+            {q:"One of the objectives of antenatal care is:",o:["To increase maternal anxiety","Isolation","To delay hospital visits","To detect high-risk cases early"],c:3},
+            {q:"The main objective of antenatal care is:",o:["Detecting pregnancy complications early","Treating infertility","Reducing neonatal hospital stay","Increasing birth weight only"],c:0},
+            {q:"Risks in pregnancy can be reduced through:",o:["Hospital medication","Effective, accessible, and acceptable maternity care","Promote awareness of anxiety","Exercise alone"],c:1},
+            {q:"Which of the following are the Objectives of Antenatal Care:",o:["To prepare the woman for labor, lactation and care of her infant","To ensure that the pregnant woman and her fetus are in optimum health","To early detection and treat any complication for mother or the fetus","All of the above"],c:3},
+            {q:"What is the primary purpose of preconception care?",o:["To begin medical care as soon as pregnancy is confirmed","To prepare your body for pregnancy, birth, and beyond","To permanently cure all pre-existing chronic illnesses","To determine the baby's gender before conception"],c:1},
+            {q:"The primary goal of preconception care is to:",o:["Diagnose pregnancy early","Identify and modify risk factors before conception to improve pregnancy outcomes","Provide antenatal vitamins only","Determine fetal sex"],c:1},
+            {q:"What is the ideal recommended duration for preconception preparation before trying to conceive, if possible?",o:["One week","At least one month","At least four months","One year"],c:2},
+            {q:"Which of the following is a key component of preconception care?",o:["Vaccination against rubella if the woman is non-immune","Starting iron supplementation only after delivery","Ultrasound scan in the first trimester","Monitoring fetal heart rate before conception"],c:0},
+            {q:"Which vitamin is universally recommended to be taken before pregnancy to help prevent major birth defects of the baby's brain and spine?",o:["Vitamin C","Folic acid","Vitamin D","Vitamin B12"],c:1},
+            {q:"According to WHO recommendations, the minimum number of antenatal visits for a low-risk pregnancy is:",o:["4 visits","6 visits","8 visits","10 visits"],c:2},
+            {q:"The first antenatal visit should ideally take place/ be scheduled:",o:["At 20 weeks of pregnancy","At 12 weeks of pregnancy","As early as possible in the first trimester(Before 12 weeks of gestation)","At 28 weeks of pregnancy"],c:2},
+            {q:"The frequency of antenatal visits during the first 28 weeks(first 7 months) is:",o:["Weekly","Every 4 weeks(Monthly)","Every 2 weeks","Only as needed"],c:1},
+            {q:"Antenatal visits are scheduled every two weeks during:",o:["First trimester","7th and 8th month(28 to 36 weeks)","1st and 2nd month","9th month"],c:1},
+            {q:"Prenatal visits during week 36-40 are routinely scheduled:",o:["Monthly","Weekly","Every 2 weeks","As needed"],c:1},
+            {q:"Which of the following is NOT a component of antenatal care?",o:["History taking","Physical examination","Laboratory investigations","Postnatal isolation/ Delivery assistance"],c:3},
+            {q:"History taking in antenatal care includes:",o:["Only obstetrical history","Personal, family, medical, menstrual, and obstetrical history","Blood pressure checks only","Diet plan only"],c:1},
+            {q:"History taking includes all EXCEPT:",o:["Personal history","Family history","Weather history","Obstetrical history"],c:2},
+            {q:"Family history is important to identify:",o:["Allergies","Hereditary disorders","Sleep pattern","Type of delivery"],c:1},
+            {q:"Menstrual history helps determine:",o:["Estimated date of delivery(EDD)","Baby's weight","Sleep pattern","Feeding habits"],c:0},
+            {q:"What is the purpose of calculating the Expected Date of Delivery(EDD) using Naegele's rule?",o:["To determine the sex of the baby","To identify malpresentation","To estimate gestational age and due date","To assess fetal movement"],c:2},
+            {q:"According to Naegele's rule, the expected date of delivery(EDD) is calculated by:",o:["Adding 9 months to LMP","Adding 7 days, subtracting 3 months, and adding 1 year","Subtracting 10 days, adding 9 months","Adding 280 days to the date of conception"],c:1},
+            {q:"Fetal lie and presentation are assessed by:",o:["Urine test","Abdominal palpation","Blood test","Stool exam"],c:1},
+            {q:"During antenatal exam, breast is checked for:",o:["Color only","Shape and nipple condition","Hair growth","Temperature"],c:1},
+            {q:"Ultrasound is used to determine:",o:["Blood pressure","Amniotic fluid and placenta location","Weight only","Pulse"],c:1},
+            {q:"Urine analysis checks for:",o:["Protein and glucose","Oxygen level","Heart rate","Temperature"],c:0},
+            {q:"Screening for gestational diabetes is done at:",o:["10–12 weeks","16–18 weeks","24–28 weeks","After delivery"],c:2},
+            {q:"Normal weight gain during pregnancy is about:",o:["5 kg","8 kg","12 kg(or 10-12 kg)","20 kg"],c:2},
+            {q:"Excessive weight gain may indicate:",o:["Anemia","Gestational diabetes","Infection","Dehydration"],c:1},
+            {q:"Height more than 150 cm indicates:",o:["Small pelvis","Average pelvis","Abnormal fetus","Hypertension"],c:1},
+            {q:"Which of the following is considered an abnormal blood pressure reading during antenatal visits?",o:["120/80 mmHg","135/85 mmHg","140/90 mmHg(or>140/90 mmHg)","110/70 mmHg"],c:2},
+            {q:"Cyanosis indicates:",o:["Normal condition","Lack of oxygen","High sugar","Good circulation"],c:1},
+            {q:"Normal fetal movement is:",o:["2 movements in 12 hours","5 movements in 12 hours","10 movements in 12 hours","No movement"],c:2},
+            {q:"Danger sign during pregnancy includes:",o:["Normal appetite","Vaginal bleeding(or Persistent vomiting)","Mild sleep","Walking"],c:1},
+            {q:"Recommended daily calories for pregnant woman:",o:["1500","2000","2500","3000"],c:2},
+            {q:"Pregnant woman should drink:",o:["2 cups water","5 cups water","10–12 cups water","No water"],c:2},
+            {q:"Pregnant women should avoid:",o:["Fiber-rich food","Excess salt and strong tea","Fruits","Vegetables"],c:1},
+            {q:"Best sleeping position during pregnancy:",o:["Supine","Sims’ position(Left lateral)","Standing","Sitting"],c:1},
+            {q:"Supine position may cause:",o:["Hypertension","Hypotension","Diabetes","Fever"],c:1},
+            {q:"Exercises after the first trimester should avoid:",o:["Standing","Supine position","Sitting","Side-lying position"],c:1},
+            {q:"One contraindication for exercise during pregnancy is:",o:["Normal BP","Vaginal bleeding","Regular menses","Good nutrition"],c:1},
+            {q:"Tetanus vaccination is important to:",o:["Increase weight","Protect mother and fetus","Improve sleep","Reduce pain"],c:1}
+        ];
+
+        const lec9 = [
+            {q:"Normal labour is defined as the spontaneous expulsion of:",o:["Mature viable fetus","Fetus presenting by vertex","Fetus without episiotomy","A and B are true"],c:3},
+            {q:"Braxton Hicks contractions are:",o:["Painful","Cause cervical dilation","False labor","Only in first trimester"],c:2},
+            {q:"A client arrives at a birthing center in active labor. Her membranes are still intact, and the nurse-midwife prepares to perform an amniotomy. A nurse who is assisting explains to the client that after this procedure, she will most likely have:",o:["Less pressure on her cervix","Increased efficiency of contractions","Decreased number of contractions","The need for increased maternal blood pressure monitoring"],c:1},
+            {q:"Which of the following is the most serious adverse effect associated with oxytocin administration during labor?",o:["Tetanic contractions","Elevated blood pressure","Early decelerations of FHR","Water intoxication"],c:0},
+            {q:"The most appropriate definition of episiotomy is:",o:["A cut made to widen the birth canal","A medication given for pain during childbirth","A cut made to make baby smaller","An injection given to numb the perineum"],c:0},
+            {q:"Which of the following is the most common type of episiotomy?",o:["The medial incision","The mediolateral incision","J-shaped incision","Lateral incision"],c:1},
+            {q:"Which of the following is a possible complication from an episiotomy?",o:["The cut may become larger during delivery","The cut will heal quickly","The cut will become smaller after delivery","The procedure will cause a perineal trauma"],c:0},
+            {q:"Maternal indications in performing caesarean section are:",o:["Obstructed labor","Fetal distress","Placenta-previa","A & C(Obstructed labor & Placenta-previa)"],c:3},
+            {q:"Fetal indications in performing caesarean section is:",o:["Placental abruption","Cephalo pelvic disproportion","Active genital herpes virus","Cord prolapse"],c:3},
+            {q:"What's true about a midline longitudinal classical caesarean section incision?",o:["A procedure most commonly used today","Involves a transverse cut just above the edge of the bladder","It is rarely performed today","No one from the previous"],c:2},
+            {q:"The process in which the uterus returns to nearly pre-pregnancy size & condition is called:",o:["Diaphoresis","Involution","Sub-involution","Autolysis"],c:1},
+            {q:"Immediately after delivery, the location of the uterus is normally at:",o:["Midline and halfway between the symphysis pubis and the umbilicus","The level of the umbilicus","Below umbilicus by 1 fingerbreadth","Under umbilicus by one finger"],c:1},
+            {q:"Which of the following is a priority assessment in the immediate postpartum period?",o:["Weight","Uterine contraction","Appetite","Sleep pattern"],c:1},
+            {q:"A fundus that is boggy and deviated to the right may indicate:",o:["Infection","Full bladder","Normal recovery","Dehydration"],c:1},
+            {q:"A common sign of postpartum hemorrhage is:",o:["Fever","Sweating","Heavy vaginal bleeding","Painful urination"],c:2},
+            {q:"What term describes the vaginal discharge after childbirth?",o:["Amniotic fluid","Lochia","Colostrum","Mucus plug"],c:1},
+            {q:"A primigravida delivered her baby one hour ago. When the nurse assesses her lochia, she finds:",o:["Pinkish yellow discharge","Dark red discharge(Lochia rubra)","Creamy or white colored discharge","Bluish discharge"],c:1},
+            {q:"Lochia rubra typically lasts for:",o:["1 day","3-4 days","7-10 days","2 weeks"],c:1},
+            {q:"Lochia serosa is:",o:["Creamy or white colored discharge containing leucocytes and mucus","Pinkish yellow discharge containing less blood and more serum","Red in color due to the presence of a fair amount of blood","Brown in color and containing more blood clots"],c:1},
+            {q:"Which type of lochia should the nurse expect to find in a client at 11 days postpartum?",o:["Foul-smelling","Lochia serosa","Lochia alba","Lochia rubra"],c:1},
+            {q:"When assessing a postpartum client, the nurse notes that the lochia is red in the early days. This finding is:",o:["Normal","Indicates the presence of infection","Indicates the need for increasing oral fluids","Indicates the need for increasing ambulation"],c:0},
+            {q:"Danger signs during post-partum period for the mother include:",o:["Excessive bleeding","Foul smelling vaginal discharge","Fever with or without chills","All of the above"],c:3},
+            {q:"Which sign should be reported immediately during the postnatal period?",o:["Lochia serosa","Mild cramping","Foul-smelling discharge","Breast engorgement"],c:2},
+            {q:"Which of the following is NOT a risk factor for postpartum infection?",o:["Prolonged labor","Prolonged rupture of membranes","Use of sterile instruments","Multiple vaginal examinations"],c:2},
+            {q:"The best preventive measure for puerperal sepsis is:",o:["Bed rest","Strict hand hygiene","High-protein diet","Vitamin supplements"],c:1},
+            {q:"The WHO recommends giving prophylactic antibiotics for:",o:["All vaginal births","Cesarean section","Every episiotomy","Breastfeeding women"],c:1}
+        ];
+
+        const lectures = [
+            { id: 1, title: "Maternal and neonatal mortality", icon: "1", data: lec1 },
+            { id: 2, title: "Female reproductive system", icon: "2", data: lec2 },
+            { id: 3, title: "Female reproductive cycle", icon: "3", data: lec3 },
+            { id: 4, title: "Fertilization, Implantation and Fetal development", icon: "4", data: lec4 },
+            { id: 5, title: "Diagnosis of pregnancy", icon: "5", data: lec5 },
+            { id: 6, title: "Physiological changes during pregnancy", icon: "6", data: lec6 },
+            { id: 7, title: "Pre-conceptual health", icon: "7", data: lec7 },
+            { id: 8, title: "Antenatal care", icon: "8", data: lec8 },
+            { id: 9, title: "Physiology and Management of Normal labour", icon: "9", data: lec9 }
+        ];
+
+        // ==========================================
+        // APP STATE & LOGIC
+        // ==========================================
+        let currentLecture = null;
+        let stats = { correct: 0, wrong: 0, answered: 0 };
+
+        function initMenu() {
+            const list = document.getElementById('lectures-list');
+            list.innerHTML = '';
+            lectures.forEach(lec => {
+                const card = document.createElement('div');
+                card.className = 'lecture-card';
+                card.onclick = () => startQuiz(lec);
+                card.innerHTML = `<div class="lecture-icon">${lec.icon}</div><div class="lecture-info"><h3>${lec.title}</h3><p>${lec.data.length} أسئلة</p></div>`;
+                list.appendChild(card);
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            setTimeout(() => {
+                document.getElementById(screenId).classList.add('active');
+                document.getElementById(screenId).scrollTop = 0;
+            }, 100);
+        }
+
+        function startQuiz(lecture) {
+            currentLecture = lecture;
+            stats = { correct: 0, wrong: 0, answered: 0 };
+            document.getElementById('quiz-title').innerText = lecture.title;
+            document.getElementById('results-container').classList.remove('show');
+            updateStatsUI();
+            renderQuestions();
+            showScreen('quiz-screen');
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+            currentLecture.data.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                let optionsHtml = '';
+                q.o.forEach((opt, optIndex) => {
+                    optionsHtml += `<button class="option-btn" id="opt-${index}-${optIndex}" onclick="checkAnswer(${index}, ${optIndex})">${opt}</button>`;
+                });
+                card.innerHTML = `<div class="question-text">${index + 1}. ${q.q}</div><div class="options-container" id="opts-${index}">${optionsHtml}</div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIndex, optIndex) {
+            const question = currentLecture.data[qIndex];
+            const optionsContainer = document.getElementById(`opts-${qIndex}`);
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            if (buttons[0].classList.contains('disabled')) return;
+
+            const selectedBtn = document.getElementById(`opt-${qIndex}-${optIndex}`);
+            const correctBtn = document.getElementById(`opt-${qIndex}-${question.c}`);
+            buttons.forEach(btn => btn.classList.add('disabled'));
+
+            if (optIndex === question.c) {
+                selectedBtn.classList.add('correct');
+                stats.correct++;
+                triggerCelebration();
+            } else {
+                selectedBtn.classList.add('wrong');
+                correctBtn.classList.add('correct');
+                stats.wrong++;
+                triggerShake(selectedBtn);
+            }
+            stats.answered++;
+            updateStatsUI();
+            if (stats.answered === currentLecture.data.length) setTimeout(showResults, 800);
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-remaining').innerText = currentLecture.data.length - stats.answered;
+            document.getElementById('stat-correct').innerText = stats.correct;
+            document.getElementById('stat-wrong').innerText = stats.wrong;
+        }
+
+        function triggerCelebration() {
+            const overlay = document.getElementById('celebration');
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1200);
+        }
+
+        function triggerShake(element) {
+            element.classList.add('shake');
+            setTimeout(() => element.classList.remove('shake'), 400);
+        }
+
+        function showResults() {
+            const percentage = Math.round((stats.correct / currentLecture.data.length) * 100);
+            const scoreEl = document.getElementById('results-score');
+            const msgEl = document.getElementById('results-message');
+            scoreEl.innerText = `${percentage}%`;
+
+            if (percentage >= 80) {
+                msgEl.innerText = "ممتاز!  متفوق جداً 🌟 استمر على هذا التألق!";
+                scoreEl.style.color = "var(--success)";
+            } else if (percentage >= 50) {
+                msgEl.innerText = "جيد جداً! 💪 راجع الأخطاء اللي وقعت فيها وعاود المحاولة،  !";
+                scoreEl.style.color = "var(--gold)";
+            } else {
+                msgEl.innerText = "لا بأس، المحاضرة دي تحتاج شوية مراجعة 📚. راجع المعلومات وحاول تاني،  !";
+                scoreEl.style.color = "var(--error)";
+            }
+            document.getElementById('results-container').classList.add('show');
+            document.getElementById('results-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function restartQuiz() { startQuiz(currentLecture); }
+        window.onload = initMenu;
+    </script>
+</body>
+</html>
